@@ -1,0 +1,46 @@
+/* vim:set ts=3 sw=3 expandtab: */
+apply plugin: 'cpp'
+
+model {
+   repositories {
+      libs(PrebuiltLibraries) {
+         test {
+            binaries.withType(SharedLibraryBinary) {
+               headers.srcDir "path/to/${targetPlatform.name}/headers"
+               sharedLibraryFile = file("libs/${targetPlatform.name}/lib.so")
+            }
+         }
+      }
+   }
+
+   platforms {
+      plat_32 { architecture "x86" }
+      plat_64 { architecture "x86_64" }
+   }
+
+}
+executables {
+   main {}
+}
+
+sources {
+   main.cpp.lib library: 'test'
+}
+
+/* Uncomment to see workaround
+tasks.withType(AbstractNativeCompileTask) {
+   doFirst() {
+      println "Bad for ${targetPlatform.name} = ${includes.asPath}"
+      includes = includes.filter { filePath ->
+         def path = filePath.toString()
+         // Real workaround is a little prettier than this
+         if (targetPlatform.architecture.i386) {
+            path.contains(targetPlatform.name) || !path.contains("64/")
+         } else {
+            path.contains(targetPlatform.name) || !path.contains("32/")
+         }
+      }
+      println "Fixed for ${targetPlatform.name} = ${includes.asPath}"
+   }
+}
+*/
